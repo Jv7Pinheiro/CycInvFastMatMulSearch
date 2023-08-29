@@ -1,4 +1,4 @@
-function [K, P0, output] = ci_cp_dgn(Z, Rs, Rc,varargin)
+function [K, P0, output] = ci_cp_dgn(Z, Rs, Rc, varargin)
 %   CI_CP_OPT Fits a CP model to a cyclic invariant tensor via Damped Gauss-Newton optimization.
 %
 %   K = CP_DGN(X,R) fits an R-component CANDECOMP/PARAFAC (CP) model
@@ -74,8 +74,14 @@ function [K, P0, output] = ci_cp_dgn(Z, Rs, Rc,varargin)
     %% Initialization
     sz = size(Z, 1);
     if iscell(init)
-        P0 = init;
+        if (size(init, 1) == 4)
+            P0 = init;
+        elseif(size(init, 1) == 1)
+            P0 = init';
+        end
+        TildaFunctions = 1;
     else
+        TildaFunctions = 0;
         P0 = cell(4,1);
         for n=1:4
             if (n==1)
@@ -89,25 +95,30 @@ function [K, P0, output] = ci_cp_dgn(Z, Rs, Rc,varargin)
 %% Fit CP using CPDGN
 if printitn > 0
     fprintf('\nCI_CP_DGN:\n');
-    fprintf('Iter  |       f |  relerr |   delta |  stepsz | cgflag | cgiters | cgrelres | diff \n');
-    fprintf('---------------------------------------------------------------------------\n');
+    fprintf('Iter  |       f |  relerr |  abserr |  delta  |  stepsz |  cgflag | cgiters | cgrelres |\n');
+    fprintf('----------------------------------------------------------------------------------------\n');
 end
 
-%SET TARGETS OVER HERE
-Kt = {zeros(sz, Rs) zeros(sz, Rc) zeros(sz, Rc) zeros(sz, Rc)};
 K = P0;
 normZsqr = norm(Z)^2; % precompute norm
-[G,f] = CI_Tilda_Gradient_FunctionValue(P0, Kt, Z, beta); % compute func value and gradient of init
+if (TildaFunctions == 1)
+    Kt = cellfun(@(x) SetTargets(x, thresh), K, 'UniformOutput', false)';
+    [G,f] = CI_Tilda_Gradient_FunctionValue(P0, Kt, Z, beta); % compute func value and gradient of init
+else
+    [G,f] = CI_Gradient_FunctionValue(P0, Z); % compute func value and gradient of random
+end
+
 relerr = sqrt(2*f/normZsqr);
 
-% The following are precomputations, as of right now I am not doing this
-% but when the time comes, this might be useful
-%KTK = cellfun(@(x) x'*x, K, 'UniformOutput', false); % compute Grams of factor matrices
-%Phi = HadOfGrams(KTK); % compute Hadamard products of Grams
-
 for iter = 1:maxiters    
-    % compute search direction using CG 
-    [dvec,cg_flag,cg_relres,cg_iter] = pcg(@(x) Apply_Approx_Tilda_Hessian(K, x, beta, lambda), -G, cg_tol, cg_maxiters);
+    % compute search direction using CG
+    % if there are initial values, we use the tilda functions
+    if (TildaFunctions == 1)
+        [dvec,cg_flag,cg_relres,cg_iter] = pcg(@(x) Apply_Approx_Tilda_Hessian(K, x, beta, lambda), -G, cg_tol, cg_maxiters);
+    else
+        [dvec,cg_flag,cg_relres,cg_iter] = pcg(@(x) Apply_Approx_Hessian(K, x, lambda), -G, cg_tol, cg_maxiters);
+    end
+    
     D = ci_tt_cp_vec_to_fac(dvec, K);
     
     % perform backtracking line search to ensure function value decrease
@@ -121,7 +132,12 @@ for iter = 1:maxiters
         K = cellfun(@(x,y) x + alpha * y, Kprev, D, 'UniformOutput', false);
                 
         % compute function value and gradient
-        [G,f] = CI_Tilda_Gradient_FunctionValue(K, Kt, Z, beta);
+        if (TildaFunctions == 1)
+            [G,f] = CI_Tilda_Gradient_FunctionValue(K, Kt, Z, beta); % compute func value and gradient of init
+        else
+            [G,f] = CI_Gradient_FunctionValue(K, Z); % compute func value and gradient of random
+        end
+
         relerr = sqrt(2*f/normZsqr);
         delta = relerrold - relerr;
             
@@ -134,15 +150,8 @@ for iter = 1:maxiters
         alpha = alpha / 2;
     end
 
-    % Check infinity norm of gradient
-    %grad_nrm = max( cellfun(@(X) max(X(:)), G) );
     
-    % Again, unecessary step for now
-    % Compute Grams of factors and Hadamard products of Grams
-    %KTK = cellfun(@(x) x'*x, K, 'UniformOutput', false);
-    %Phi = HadOfGrams(KTK);
-    
-    diff = norm(Z - ktensor(Convert_CImat_to_fac(K)));
+    abserr = norm(Z - ktensor(Convert_CImat_to_fac(K)))^2;
     % Check for convergence
     if (iter > 1) && (delta < tol)
         flag = 0;
@@ -151,7 +160,7 @@ for iter = 1:maxiters
     end
     
     if (mod(iter, printitn) == 0) || ((printitn > 0) && (flag == 0))
-        fprintf('%3d   | %7.1e | %7.1e | %7.1e | %7.1e | %7.1e |   %3d   | %7.1e | %f \n', iter, f, relerr, delta, alpha, cg_flag, cg_iter, cg_relres, diff);
+        fprintf('%3d   | %7.1e | %7.1e | %.5f | %7.1e | %7.1e | %7.1e |   %3d   | %7.1e  | \n', iter, f, relerr, abserr, delta, alpha, cg_flag, cg_iter, cg_relres);
     end
     
     % Check for convergence
@@ -163,7 +172,7 @@ end
 output.ExitFlag  = flag;
 output.FcnVal = f;
 output.RelErr = relerr;
+output.AbsErr = abserr;
 output.Fit = 100 * (1 - relerr);
-output.ExitDiff = diff;
 
 end

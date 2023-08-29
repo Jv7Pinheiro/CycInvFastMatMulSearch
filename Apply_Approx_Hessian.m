@@ -6,7 +6,7 @@ function JJW = Apply_Approx_Hessian(Mat, M, lambda)
     W = Mat{4};
     
     % Get subvectors
-    A = CyclicInvariant_tt_cp_vec_to_fac(M,Mat);
+    A = ci_tt_cp_vec_to_fac(M,Mat);
     Ms = A{1};
     Mu = A{2};
     Mv = A{3};
@@ -58,11 +58,11 @@ function JJW = Apply_Approx_Hessian(Mat, M, lambda)
     % Apply Approx Hessian to Vector 
     % Js Operations
     OneA = 3*(Ms*(SS.*SS) + 2*(S*(MsS.*SS))); % Correct
-    OneB = 3*(Mu*(VS.*WS) + V*(MuS.*WS) + W*(MuS.*VS)); % Correct
-    OneC = 3*(Mv*(US.*WS) + U*(MvS.*WS) + W*(MvS.*US)); % Correct
-    OneD = 3*(Mw*(US.*VS) + U*(MwS.*VS) + V*(MwS.*US)); % Correct
+    OneB = 3*(Mu*(VS.*WS) + V*(MuS.*WS) + W*(MuS.*VS));
+    OneC = 3*(Mv*(US.*WS) + U*(MvS.*WS) + W*(MvS.*US));
+    OneD = 3*(Mw*(US.*VS) + U*(MwS.*VS) + V*(MwS.*US));
     % Ju Operations
-    TwoA = 3*(Ms*(SV.*SW) + S*((MsW.*SV) + (MsV.*SW))); % Correct
+    TwoA = 3*(Ms*(SV.*SW) + S*((MsW.*SV) + (MsV.*SW)));
     TwoB = 3*(Mu*(VV.*WW) + V*(MuW.*WV) + W*(MuV.*VW));
     TwoC = 3*(Mv*(WV.*UW) + W*(MvW.*UV) + U*(MvV.*WW));
     TwoD = 3*(Mw*(UV.*VW) + U*(MwW.*VV) + V*(MwV.*UW));
@@ -72,7 +72,7 @@ function JJW = Apply_Approx_Hessian(Mat, M, lambda)
     ThreeC = 3*(Mv*(WW.*UU) + W*(MvU.*UW) + U*(MvW.*WU));
     ThreeD = 3*(Mw*(UW.*VU) + U*(MwU.*VW) + V*(MwW.*UU));
     %Jw Operations
-    FourA = 3*(Ms*(SU.*SV) + S*((MsU.*SV) + (MsV.*SU))); % Correct
+    FourA = 3*(Ms*(SU.*SV) + S*((MsU.*SV) + (MsV.*SU)));
     FourB = 3*(Mu*(VU.*WV) + V*(MuV.*WU) + W*(MuU.*VV));
     FourC = 3*(Mv*(WU.*UV) + W*(MvV.*UU) + U*(MvU.*WV));
     FourD = 3*(Mw*(UU.*VV) + U*(MwV.*VU) + V*(MwU.*UV));

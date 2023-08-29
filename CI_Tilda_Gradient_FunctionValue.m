@@ -57,13 +57,20 @@ function [df, f] = CI_Tilda_Gradient_FunctionValue(Mat, Tilda_Mat, X, Beta)
     f2_3 = dot(reshape(mttkrp(X, {V U W}, 1), [], 1), V(:));
     f2_4 = dot(reshape(mttkrp(X, {W V U}, 1), [], 1), W(:));
     f2 = f2_1 + f2_2 + f2_3 + f2_4;
-    
+
     f3_1 = sum(reshape(SS.*SS.*SS, [], 1));
     f3_2 = 6*sum(reshape(SV.*SW.*SU, [], 1));
     f3_3 = 3*sum(reshape(VV.*WW.*UU, [], 1));
     f3_4 = 6*sum(reshape(WV.*UW.*VU, [], 1));
     f3 = f3_1 + f3_2 + f3_3 + f3_4;
     
-    f4 = Beta*(norm(S-St)^2 + norm(U-Ut)^2 + norm(V-Vt)^2 + norm(W-Wt)^2);
-    f = 0.5*f1 - f2 + 0.5*f3 + f4;
+    f4_1 = norm(S-St)^2;
+    f4_2 = norm(U-Ut)^2;
+    f4_3 = norm(V-Vt)^2;
+    f4_4 = norm(W-Wt)^2;
+    AddErr = f4_1 + f4_2 + f4_3 +f4_4
+    f4 = Beta*AddErr
+    
+    ResErr = 0.5*f1 - f2 + 0.5*f3
+    f = ResErr + f4;
 end
