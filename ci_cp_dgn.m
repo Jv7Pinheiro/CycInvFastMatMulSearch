@@ -85,7 +85,13 @@ function [K, P0, output] = ci_cp_dgn(Z, Rs, Rc, varargin)
             end
         end
     end
-    settargets
+
+    % If beta is specified, then set targets is set to 1 regardless if it
+    % was not set in the input parameters
+    if beta ~= 0
+        settargets = 1;
+    end
+
 %% Fit CP using CPDGN
 if printitn > 0
     fprintf('\nCI_CP_DGN:\n');
