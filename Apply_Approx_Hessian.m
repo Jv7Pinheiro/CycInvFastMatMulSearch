@@ -10,6 +10,14 @@ function JJx = Apply_Approx_Hessian(CI_Mat, x, varargin)
 %
 %   'beta' - correction parameter {0}
 %   'lambda' - Damping factor {0}
+%   
+%   Unless specified by input, the beta and lambda parameters are set to 0
+%   so as to apply the 'vanilla' approximate Hessian.
+
+    %% Error Checking
+    if (nargin < 2)
+        error('Error: invalid input arguments');
+    end
 
     %% Set up parameters
     params = inputParser;
