@@ -1,0 +1,213 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+\allowdisplaybreaks
+
+
+\title{Fast Matrix Multiplication Search Using Cyclic Invariant CP-Decomposition Factor Matrices}
+\author{J}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+
+\section{It's Gradient Time}
+\subsection{CP Gradient Under Normal Circumstances}
+For $\mathcal{X} \in \mathbb{R}^{m\times n\times p}$, $\mathbf{A} \in \mathbb{R}^{m\times r}$, $\mathbf{B} \in \mathbb{R}^{n\times r}$, and $\mathbf{C} \in \mathbb{R}^{p\times r}$, $v =$
+$\begin{bmatrix}
+    vec(A)\\
+    vec(B)\\
+    vec(C)
+\end{bmatrix}$
+$\in \mathbb{R}^{mnp}$;
+\begin{center}
+    \begin{equation}
+    f(v) = \frac{1}{2}\|\mathcal{X} - [\mathbf{A, B, C}]\|^2
+    \end{equation}
+    =
+    \begin{equation}
+    f(v) = \frac{1}{2}\sum_{i=1}^m\sum_{j=1}^n\sum_{k=1}^p\bigl(x_{ijk}-\sum_{l=1}^{r}a_{il}b_{jr}c_{kl})\bigl)^2
+    \end{equation}
+\end{center}
+
+The gradient of this equation is defined as follows
+\begin{center}
+    $\nabla f =$
+    $\begin{bmatrix}
+        \mathsf{vec}(\frac{\partial f}{\partial \mathbf{A}})\\
+        \mathsf{vec}(\frac{\partial f}{\partial \mathbf{B}})\\
+        \mathsf{vec}(\frac{\partial f}{\partial \mathbf{C}})
+    \end{bmatrix}$
+    $\in \mathbb{R}^{(m+n+p)r}$
+\end{center}
+
+Where each partial derivative is defined below. 
+\begin{equation}
+    \frac{\partial f}{\partial \mathbf{A}} = -\mathbf{X}_{(1)}(\mathbf{C\odot B}) + \mathbf{A(C^\intercal C\ast B^\intercal B)}
+\end{equation}
+\begin{equation}
+    \frac{\partial f}{\partial \mathbf{B}} = -\mathbf{X}_{(1)}(\mathbf{C\odot A}) + \mathbf{B(C^\intercal C\ast A^\intercal A)}
+\end{equation}
+\begin{equation}
+    \frac{\partial f}{\partial \mathbf{C}} = -\mathbf{X}_{(1)}(\mathbf{B\odot A}) + \mathbf{C(B^\intercal B\ast A^\intercal A)}
+\end{equation}
+
+
+
+
+\subsection{What We Are Interested In}
+Now define A, B, and C to be cyclic invariant. 
+\begin{center}
+    $\mathbf{A} = \begin{bmatrix}
+        \mathbf{S} & \mathbf{U} & \mathbf{V} & \mathbf{W}\\
+    \end{bmatrix}$\\
+    $\mathbf{B} = \begin{bmatrix}
+        \mathbf{S} & \mathbf{W} & \mathbf{U} & \mathbf{V}\\
+    \end{bmatrix}$\\
+    $\mathbf{C} = \begin{bmatrix}
+        \mathbf{S} & \mathbf{C} & \mathbf{W} & \mathbf{U}\\
+    \end{bmatrix}$
+\end{center}
+Where $\mathbf{S} \in \mathbb{R}^{n\times R_s}$, and $\mathbf{U, V, W} \in \mathbb{R}^{n\times R_c}$, where n is set by the size of the matmul tensor we are decomposing and  and  $R_s$ and $R_c$ are the sizes that we can set depending on the size of the matmul tensor. Using these matrices, our equation becomes:
+\begin{equation}
+    f(v) = \frac{1}{2} \sum_{i}^m \sum_{j}^n \sum_{k}^p \left( x_{ijk} - \sum_{q}^{r_s} s_{iq}s_{jq}s_{kq} - \sum_{l}^{r_{uvw}} (u_{il}v_{jl}w_{kl} + w_{il}u_{jl}v_{kl} + v_{il}w_{jl}u_{kl}) \right)^2
+\end{equation}
+
+We are then interested in getting the partial derivatives with respect to S, U, V, and W, in other words,
+\begin{center}
+    $\nabla f =$
+    $\begin{bmatrix}
+        \mathsf{vec}(\frac{\partial f}{\partial \mathbf{S}})\\
+        \mathsf{vec}(\frac{\partial f}{\partial \mathbf{U}})\\
+        \mathsf{vec}(\frac{\partial f}{\partial \mathbf{V}})\\
+        \mathsf{vec}(\frac{\partial f}{\partial \mathbf{W}})
+    \end{bmatrix}$
+    $\in \mathbb{R}^{(m+n+p)r}$
+\end{center}
+
+Then we take the derivative of f with respect to a single entry in S, namely $s_{i'q'}$.
+\begin{eqnarray*}
+    \frac{\partial f}{\partial s_{i'q'}} = - \sum_{i=1}^m\sum_{j=1}^n\sum_{k=1}^p\bigl(x_{ijk}-\sum_{q=1}^{r_\mathbf{s}}\mathbf{s}_{iq}\mathbf{s}_{jq}\mathbf{s}_{kq}-\sum_{l=1}^{r_\mathbf{uvw}}(\mathbf{u}_{il}\mathbf{v}_{jl}\mathbf{w}_{kl} + \mathbf{w}_{i,l}\mathbf{u}_{j,l}\mathbf{v}_{k,l} + \mathbf{v}_{il}\mathbf{w}_{jl}\mathbf{u}_{kl})\bigl) \cdot \\
+    (\partial_{ii'} \mathbf{s}_{jq'}\mathbf{s}_{kq'} + \mathbf{s}_{iq'}\partial_{ji'} \mathbf{s}_{kq'} + \mathbf{s}_{iq'}\mathbf{s}_{jq'}\partial_{kq'})
+\end{eqnarray*}
+
+
+There is one tricky part that comes with the chain rule of this function. Take a look, for example, at the second term of the second line; $\mathbf{s}_{iq'}\partial_{ji'} \mathbf{s}_{kq'}$. What this means is that we took the derivative of $s_{i'q'}$ in the entirety of the $r_\mathbf{s}$ summation, but somewhere in it, j matches i'. Thus, we take the derivative of that specific term (thus the $\partial_{ji'}$), but what comes along are the other s factors in that term. Since this can only happen whenever q = q' we are left with the s factors of different i and k, but of equal q. This Happens often throughout this project, so it is important to understand why this happens. The steps that follow are not difficult, just tedious and lengthy, so we do it one step out of time. 
+
+\begin{eqnarray*}
+    \lefteqn{}
+    & & =_1 -\sum_{i=1}^m\sum_{j=1}^n\sum_{k=1}^p(x_{ijk})(\partial_{ii'} \mathbf{s}_{jq'}\mathbf{s}_{kq'} + \mathbf{s}_{iq'}\partial_{ji'} \mathbf{s}_{kq'} + \mathbf{s}_{iq'}\mathbf{s}_{jq'}\partial_{kq'}) \\
+    & & = - \sum_{j=1}^n\sum_{k=1}^px_{i'jk}\mathbf{s}_{jq'}\mathbf{s}_{kq'} - \sum_{i=1}^m\sum_{k=1}^px_{ij'k}\mathbf{s}_{iq'}\mathbf{s}_{kq'} - \sum_{i=1}^m\sum_{j=1}^nx_{ijk'}\mathbf{s}_{iq'}\mathbf{s}_{jq'} \\
+    & & = - \bigl[\mathbf{X}_{(1)}\bigl(\mathbf{S}\odot \mathbf{S}\bigl)\bigl]_{i'q'} - \bigl[\mathbf{X}_{(2)}\bigl(\mathbf{S}\odot \mathbf{S}\bigl)\bigl]_{j'q'} - \bigl[\mathbf{X}_{(3)}\bigl(\mathbf{S}\odot \mathbf{S}\bigl)\bigl]_{k'q'} \\
+    & & = -3 \bigl[\mathbf{X}_{(1)} \bigl(\mathbf{S}\odot \mathbf{S}\bigl)\bigl]_{i'q'}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+    \lefteqn{}
+    & & =_2 \sum_{i=1}^m\sum_{j=1}^n\sum_{k=1}^p(\sum_{q=1}^{r_\mathbf{s}}\mathbf{s}_{iq}\mathbf{s}_{jq}\mathbf{s}_{kq})(\partial_{ii'} \mathbf{s}_{jq'}\mathbf{s}_{kq'} + \mathbf{s}_{iq'}\partial_{ji'} \mathbf{s}_{kq'} + \mathbf{s}_{iq'}\mathbf{s}_{jq'}\partial_{kq'}) \\
+    & & = \sum_{j=1}^n\sum_{k=1}^p\sum_{q=1}^{r_\mathbf{s}}\mathbf{s}_{i'q}\mathbf{s}_{jq}\mathbf{s}_{kq}\mathbf{s}_{jq'}\mathbf{s}_{kq'} + \sum_{i=1}^m\sum_{k=1}^p\sum_{q=1}^{r_\mathbf{s}}\mathbf{s}_{iq}\mathbf{s}_{j'q}\mathbf{s}_{kq}\mathbf{s}_{iq'}\mathbf{s}_{kq'} + \sum_{i=1}^m\sum_{j=1}^n\sum_{q=1}^{r_\mathbf{s}}\mathbf{s}_{iq}\mathbf{s}_{jq}\mathbf{s}_{k'q}\mathbf{s}_{iq'}\mathbf{s}_{jq'} \\
+    & & = \sum_{q=1}^{r_\mathbf{s}}\mathbf{s}_{i'q}(\sum_{j=1}^n \mathbf{s}_{jq}\mathbf{s}_{jq'})(\sum_{k=1}^p \mathbf{s}_{kq}\mathbf{s}_{kq'}) + \sum_{q=1}^{r_\mathbf{s}}\mathbf{s}_{j'q}(\sum_{i=1}^m \mathbf{s}_{iq}\mathbf{s}_{iq'})(\sum_{k=1}^p \mathbf{s}_{kq}\mathbf{s}_{kq'}) + \sum_{q=1}^{r_\mathbf{s}}\mathbf{s}_{i'q}(\sum_{i=1}^m \mathbf{s}_{iq}\mathbf{s}_{iq'})(\sum_{j=1}^n \mathbf{s}_{jq}\mathbf{s}_{jq'}) \\
+    & & = [S(S^\intercal S)\ast (S^\intercal S)]_{i'q'} + [S(S^\intercal S)\ast (S^\intercal S)]_{j'q'} + [S(S^\intercal S)\ast (S^\intercal S)]_{k'q'} \\
+    & & = 3[S(S^\intercal S)\ast (S^\intercal S]_{i'q'}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+    \lefteqn{}
+    & & =_3 \sum_{i=1}^m\sum_{j=1}^n\sum_{k=1}^p(\sum_{l=1}^{r_\mathbf{uvw}}(\mathbf{u}_{il}\mathbf{v}_{jl}\mathbf{w}_{kl} + \mathbf{w}_{i,l}\mathbf{u}_{j,l}\mathbf{v}_{k,l} + \mathbf{v}_{il}\mathbf{w}_{jl}\mathbf{u}_{kl}))(\partial_{ii'} \mathbf{s}_{jq'}\mathbf{s}_{kq'} + \mathbf{s}_{iq'}\partial_{ji'} \mathbf{s}_{kq'} + \mathbf{s}_{iq'}\mathbf{s}_{jq'}\partial_{kq'}) \\
+    & & = \sum_{j=1}^n\sum_{k=1}^p\sum_{l=1}^{r_{uvw}}\mathbf{u}_{i'l}\mathbf{v}_{jl}\mathbf{w}_{kl}\mathbf{s}_{jq'}\mathbf{s}_{kq'} + \sum_{i=1}^m\sum_{k=1}^p\sum_{l=1}^{r_{uvw}}\mathbf{u}_{il}\mathbf{v}_{j'l}\mathbf{w}_{kl}\mathbf{s}_{iq'}\mathbf{s}_{kq'} + \sum_{i=1}^m\sum_{j=1}^n\sum_{l=1}^{r_{uvw}}\mathbf{u}_{il}\mathbf{v}_{jl}\mathbf{w}_{k'l}\mathbf{s}_{iq'}\mathbf{s}_{jq'} \\
+    & & + \sum_{j=1}^n\sum_{k=1}^p\sum_{l=1}^{r_{uvw}}\mathbf{w}_{i'l}\mathbf{u}_{jl}\mathbf{v}_{kl}\mathbf{s}_{jq'}\mathbf{s}_{kq'} + \sum_{i=1}^m\sum_{k=1}^p\sum_{l=1}^{r_{uvw}}\mathbf{w}_{il}\mathbf{u}_{j'l}\mathbf{v}_{kl}\mathbf{s}_{iq'}\mathbf{s}_{kq'} + \sum_{i=1}^m\sum_{j=1}^n\sum_{l=1}^{r_{uvw}}\mathbf{w}_{il}\mathbf{u}_{jl}\mathbf{v}_{k'l}\mathbf{s}_{iq'}\mathbf{s}_{jq'} \\
+    & & + \sum_{j=1}^n\sum_{k=1}^p\sum_{l=1}^{r_{uvw}}\mathbf{v}_{i'l}\mathbf{w}_{jl}\mathbf{u}_{kl}\mathbf{s}_{jq'}\mathbf{s}_{kq'} + \sum_{i=1}^m\sum_{k=1}^p\sum_{l=1}^{r_{uvw}}\mathbf{v}_{il}\mathbf{w}_{j'l}\mathbf{u}_{kl}\mathbf{s}_{iq'}\mathbf{s}_{kq'} + \sum_{i=1}^m\sum_{j=1}^n\sum_{l=1}^{r_{uvw}}\mathbf{v}_{il}\mathbf{w}_{jl}\mathbf{u}_{k'l}\mathbf{s}_{iq'}\mathbf{s}_{jq'} \\
+    & & = \sum_{l=1}^{r_{uvw}}\mathbf{u}_{i'l}(\sum_{j=1}^n\mathbf{v}_{jl}\mathbf{s}_{jq'})(\sum_{k=1}^p\mathbf{w}_{kl}\mathbf{s}_{kq'}) + \sum_{l=1}^{r_{uvw}}\mathbf{v}_{j'l}(\sum_{i=1}^m\mathbf{u}_{il}\mathbf{s}_{iq'})(\sum_{k=1}^p\mathbf{w}_{kl}\mathbf{s}_{kq'}) + \sum_{l=1}^{r_{uvw}}\mathbf{w}_{k'l}(\sum_{i=1}^m\mathbf{u}_{il}\mathbf{s}_{iq'})(\sum_{j=1}^n\mathbf{v}_{jl}\mathbf{s}_{jq'}) \\
+    & & + \sum_{l=1}^{r_{uvw}}\mathbf{w}_{i'l}(\sum_{j=1}^n\mathbf{u}_{jl}\mathbf{s}_{jq'})(\sum_{k=1}^p\mathbf{v}_{kl}\mathbf{s}_{kq'}) + \sum_{l=1}^{r_{uvw}}\mathbf{u}_{j'l}(\sum_{i=1}^m\mathbf{w}_{il}\mathbf{s}_{iq'})(\sum_{k=1}^p\mathbf{v}_{kl}\mathbf{s}_{kq'}) + \sum_{l=1}^{r_{uvw}}\mathbf{v}_{k'l}(\sum_{i=1}^m\mathbf{w}_{il}\mathbf{s}_{iq'})(\sum_{j=1}^n\mathbf{u}_{jl}\mathbf{s}_{jq'})
+\end{eqnarray*}
+
+\begin{eqnarray*}
+        \frac{\partial f}{\partial \mathbf{S}} = & 3\cdot \Bigl(S\bigl((S^\intercal S)\ast (S^\intercal S)\bigl) + U\bigl((V^\intercal S)\ast(W^\intercal S)\bigl) + V\bigl((U^\intercal S)\ast(W^\intercal S)\bigl) + W\bigl((U^\intercal S)\ast(V^\intercal S)\bigl)\\ 
+        & - (\mathbf{X}_{(1)} + \mathbf{X}_{(2)} + \mathbf{X}_{(3)})(S\odot S)\Bigl) \\
+        \frac{\partial f}{\partial \mathbf{U}} = & 3\cdot \Bigl(S\bigl((S^\intercal V)\ast (S^\intercal W)\bigl) + U\bigl((V^\intercal V)\ast(W^\intercal W)\bigl) + V\bigl((W^\intercal V)\ast(U^\intercal W)\bigl) + W\bigl((U^\intercal V)\ast(V^\intercal W)\bigl)\Bigl)\\ 
+        & - \mathbf{X}_{(1)}(V\odot W) - \mathbf{X}_{(2)}(W\odot V) - \mathbf{X}_{(3)}(V\odot W) \\
+        \frac{\partial f}{\partial \mathbf{V}} = & 3\cdot \Bigl(S\bigl((S^\intercal U)\ast (S^\intercal W)\bigl) + U\bigl((W^\intercal U)\ast(V^\intercal W)\bigl) + V\bigl((U^\intercal U)\ast(W^\intercal W)\bigl) + W\bigl((V^\intercal U)\ast(U^\intercal W)\bigl)\Bigl)\\ 
+        & - \mathbf{X}_{(1)}(W\odot U) - \mathbf{X}_{(2)}(U\odot W) - \mathbf{X}_{(3)}(W\odot U) \\
+        \frac{\partial f}{\partial \mathbf{W}} = & 3\cdot \Bigl(S\bigl((S^\intercal U)\ast (S^\intercal V)\bigl) + U\bigl((V^\intercal U)\ast(W^\intercal V)\bigl) + V\bigl((W^\intercal U)\ast(U^\intercal V)\bigl) + W\bigl((U^\intercal U)\ast(V^\intercal V)\bigl)\Bigl)\\ 
+        & - \mathbf{X}_{(1)}(U\odot V) - \mathbf{X}_{(2)}(V\odot U) - \mathbf{X}_{(3)}(U\odot V)
+\end{eqnarray*}
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+\section{It's Jacobian Time}
+\begin{equation}
+    J = 
+    \begin{bmatrix}
+        J_s & J_u & J_v & J_w 
+    \end{bmatrix}
+    \in \mathbb{R}^{n^3\times n(r_s + 3r_{uvw})}
+\end{equation}
+
+\begin{subequations}
+    \begin{align}
+    J_s & = (S\odot S) \otimes I_n + \Pi_2^\intercal\cdot (S\odot S) \otimes I_n + \Pi_3^\intercal\cdot (S\odot S) \otimes I_n\\
+    J_u & = (V\odot W) \otimes I_n + \Pi_2^\intercal\cdot (W\odot V) \otimes I_n + \Pi_3^\intercal\cdot (V\odot W) \otimes I_n\\
+    J_v & = (W\odot U) \otimes I_n + \Pi_2^\intercal\cdot (U\odot W) \otimes I_n + \Pi_3^\intercal\cdot (W\odot U) \otimes I_n\\
+    J_w & = (U\odot V) \otimes I_n + \Pi_2^\intercal\cdot (V\odot U) \otimes I_n + \Pi_3^\intercal\cdot (U\odot V) \otimes I_n
+    \end{align}
+\end{subequations}
+
+\begin{equation}
+    J^\intercal J \cdot vec(M) = 
+    \begin{bmatrix}
+        J_s^\intercal J_s & J_s^\intercal J_u & J_s^\intercal J_v & J_s^\intercal J_w \\
+        J_u^\intercal J_s & J_u^\intercal J_u & J_u^\intercal J_v & J_u^\intercal J_w \\
+        J_v^\intercal J_s & J_v^\intercal J_u & J_v^\intercal J_v & J_v^\intercal J_w \\
+        J_w^\intercal J_s & J_w^\intercal J_u & J_w^\intercal J_v & J_w^\intercal J_w
+    \end{bmatrix}
+    \begin{bmatrix}
+        vec(M_s) \\
+        vec(M_u) \\
+        vec(M_v) \\
+        vec(M_w)
+    \end{bmatrix}
+\end{equation}
+
+\begin{subequations}
+    \begin{align}
+        J_s vec(M_s) & = vec\Bigl(M_s(S\odot S)^\intercal + S(S\odot M_s)^\intercal + S(M_s\odot S)^\intercal\Bigl) \\
+        J_u vec(M_u) & = vec\Bigl(M_u(V\odot W)^\intercal + V(W\odot M_u)^\intercal + W(M_u\odot V)^\intercal\Bigl) \\
+        J_v vec(M_v) & = vec\Bigl(M_v(W\odot U)^\intercal + W(U\odot M_v)^\intercal + U(M_v\odot W)^\intercal\Bigl) \\
+        J_w vec(M_w) & = vec\Bigl(M_w(U\odot V)^\intercal + U(V\odot M_w)^\intercal + V(M_w\odot U)^\intercal\Bigl)
+    \end{align}
+\end{subequations}
+
+\newpage
+\begin{eqnarray*}
+    J_s^\intercal J_svec(M_s) & = 3\cdot vec\Bigl(M_s(S^\intercal S)\ast (S^\intercal S) + 2\cdot S(M_s^\intercal S)\ast (S^\intercal S)\Bigl) \\ \\
+    J_s^\intercal J_uvec(M_u) & = 3\cdot vec\Bigl(M_u(V^\intercal S)\ast (W^\intercal S) + V(M_u^\intercal S)\ast (W^\intercal S) + W(M_u^\intercal S)\ast (V^\intercal S)\Bigl) \\ \\
+    J_s^\intercal J_vvec(M_v) & = 3\cdot vec\Bigl(M_v(U^\intercal S)\ast (W^\intercal S) + U(M_v^\intercal S)\ast (W^\intercal S) + W(M_v^\intercal S)\ast (U^\intercal S)\Bigl) \\ \\
+    J_s^\intercal J_wvec(M_w) & = 3\cdot vec\Bigl(M_w(U^\intercal S)\ast (V^\intercal S) + U(M_w^\intercal S)\ast (V^\intercal S) + V(M_w^\intercal S)\ast (U^\intercal S)\Bigl) \\ \\ \\
+    J_u^\intercal J_svec(M_s) & = 3\cdot vec\bigl(M_s(S^\intercal V)\ast (S^\intercal W) + S\bigl((M_s^\intercal W)\ast (S^\intercal V) + (M_s^\intercal V)\ast (S^\intercal W)\bigl)\Bigl) \\ \\
+    J_u^\intercal J_uvec(M_u) & = 3\cdot vec\Bigl(M_u(V^\intercal V)\ast (W^\intercal W) + V(M_u^\intercal W)\ast (W^\intercal V) + W(M_u^\intercal V)\ast (V^\intercal W)\Bigl) \\ \\
+    J_u^\intercal J_vvec(M_v) & = 3\cdot vec\Bigl(M_v(W^\intercal V)\ast (U^\intercal W) + W(M_v^\intercal W)\ast (U^\intercal V) + U(M_v^\intercal V)\ast (W^\intercal W)\Bigl) \\ \\
+    J_u^\intercal J_wvec(M_w) & = 3\cdot vec\Bigl(M_w(U^\intercal V)\ast (V^\intercal W) + U(M_w^\intercal W)\ast (V^\intercal V) + V(M_w^\intercal V)\ast (U^\intercal W)\Bigl) \\ \\ \\
+    J_v^\intercal J_svec(M_s) & = 3\cdot vec\Bigl(M_s(S^\intercal U)\ast (S^\intercal W) + S\bigl((M_s^\intercal U)\ast (S^\intercal W) + (M_s^\intercal W)\ast (S^\intercal U)\bigl)\Bigl) \\ \\
+    J_v^\intercal J_uvec(M_u) & = 3\cdot vec\Bigl(M_u(V^\intercal W)\ast (W^\intercal U) + V(M_u^\intercal U)\ast (W^\intercal W) + W(M_u^\intercal W)\ast (V^\intercal U)\Bigl) \\ \\
+    J_v^\intercal J_vvec(M_v) & = 3\cdot vec\Bigl(M_v(W^\intercal W)\ast (U^\intercal U) + W(M_v^\intercal U)\ast (U^\intercal W) + U(M_v^\intercal W)\ast (W^\intercal U)\Bigl) \\ \\
+    J_v^\intercal J_wvec(M_w) & = 3\cdot vec\Bigl(M_w(U^\intercal W)\ast (V^\intercal U) + U(M_w^\intercal U)\ast (V^\intercal W) + V(M_w^\intercal W)\ast (U^\intercal U)\Bigl) \\ \\ \\
+    J_w^\intercal J_svec(M_s) & = 3\cdot vec\Bigl(M_s(S^\intercal U)\ast (S^\intercal V) + S\bigl((M_s^\intercal U)\ast (S^\intercal V) + (M_s^\intercal V)\ast (S^\intercal U)\bigl)\Bigl) \\ \\
+    J_w^\intercal J_uvec(M_u) & = 3\cdot vec\Bigl(M_u(V^\intercal U)\ast (W^\intercal V)) + V(M_u^\intercal V)\ast (W^\intercal U)) + W(M_u^\intercal U)\ast (V^\intercal V)\Bigl) \\ \\
+    J_w^\intercal J_vvec(M_v) & = 3\cdot vec\Bigl(M_v(W^\intercal W)\ast (U^\intercal V) + W\bigl(2\cdot (M_v^\intercal V)\ast (U^\intercal U) + U(M_v^\intercal U)\ast (W^\intercal V)\Bigl) \\ \\
+    J_w^\intercal J_wvec(M_w) & = 3\cdot vec\Bigl(M_w(U^\intercal U)\ast (V^\intercal V) + U(M_w^\intercal V)\ast (V^\intercal U) + V(M_w^\intercal U)\ast (U^\intercal V)\Bigl) \\ \\
+\end{eqnarray*}
+
+
+\end{document}
