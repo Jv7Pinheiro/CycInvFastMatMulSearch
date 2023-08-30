@@ -68,9 +68,9 @@ function [df, f] = CI_Tilda_Gradient_FunctionValue(Mat, Tilda_Mat, X, Beta)
     f4_2 = norm(U-Ut)^2;
     f4_3 = norm(V-Vt)^2;
     f4_4 = norm(W-Wt)^2;
-    AddErr = f4_1 + f4_2 + f4_3 +f4_4
-    f4 = Beta*AddErr
+    AddErr = f4_1 + f4_2 + f4_3 +f4_4;
+    f4 = Beta*AddErr;
     
-    ResErr = 0.5*f1 - f2 + 0.5*f3
+    ResErr = 0.5*f1 - f2 + 0.5*f3;
     f = ResErr + f4;
 end
