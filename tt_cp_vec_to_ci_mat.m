@@ -1,5 +1,5 @@
-function A = ci_tt_cp_vec_to_fac(x,Mat)
-% CI_TT_CP_VEC_TO_FAC Converts a vector to a cell array of the cyclic invariant matrices
+function A = tt_cp_vec_to_ci_mat(x,Mat)
+% CI_TT_CP_VEC_TO_CI Converts a vector to a cell array of the cyclic invariant matrices
 % that are used to create the factor matrixes.
 %
 %   A = TT_CP_VEC_TO_FAC(X,Mat) converts the vector X into a cell array
