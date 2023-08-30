@@ -40,6 +40,7 @@ function [G, fr, ft] = CI_Gradient_FunctionValue(CI_Mat, X, varargin)
     TG_Mat = params.Results.TG_Mat;
     beta = params.Results.beta;
    
+    %% Get from cells
     % Get matrices in cell
     S = CI_Mat{1};
     U = CI_Mat{2};
