@@ -33,7 +33,7 @@ function [G, fr, ft] = CI_Gradient_FunctionValue(CI_Mat, X, varargin)
     %% Set up parameters
     params = inputParser;
     params.addParameter('TG_Mat', {0 0 0 0},@(x) (iscell(x) || ismember(x,{'random','rand','randn','nvecs','zeros'})));
-    params.addParameter('beta', 0, @(x) isscalar(x) & x >= 0)
+    params.addParameter('beta', [0 0 0 0], @(x) isvector(x) || isscalar(x));
     params.parse(varargin{:});
 
     %% Copy from params object
@@ -77,16 +77,16 @@ function [G, fr, ft] = CI_Gradient_FunctionValue(CI_Mat, X, varargin)
     WW = W'*W;
     
     %% Get Gradients
-    dS = 3*(S*(SS.*SS) + U*(VS.*WS) + V*(US.*WS) + W*(US.*VS)) - (mttkrp(X, {S S S}, 1) + mttkrp(X, {S S S}, 2) + mttkrp(X, {S S S}, 3)) + beta*(S - St);
-    dU = 3*(S*(SV.*SW) + U*(VV.*WW) + V*(WV.*UW) + W*(UV.*VW)) - (mttkrp(X, {U W V}, 1) + mttkrp(X, {V U W}, 2) + mttkrp(X, {W V U}, 3)) + beta*(U - Ut);
-    dV = 3*(S*(SU.*SW) + U*(WU.*VW) + V*(UU.*WW) + W*(VU.*UW)) - (mttkrp(X, {V U W}, 1) + mttkrp(X, {W V U}, 2) + mttkrp(X, {U W V}, 3)) + beta*(V - Vt);
-    dW = 3*(S*(SU.*SV) + U*(VU.*WV) + V*(WU.*UV) + W*(UU.*VV)) - (mttkrp(X, {W V U}, 1) + mttkrp(X, {U W V}, 2) + mttkrp(X, {V U W}, 3)) + beta*(W - Wt);
+    dS = 3*(S*(SS.*SS) + U*(VS.*WS) + V*(US.*WS) + W*(US.*VS)) - (mttkrp(X, {S S S}, 1) + mttkrp(X, {S S S}, 2) + mttkrp(X, {S S S}, 3)) + sqrt(beta(1))*(S - St);
+    dU = 3*(S*(SV.*SW) + U*(VV.*WW) + V*(WV.*UW) + W*(UV.*VW)) - (mttkrp(X, {U W V}, 1) + mttkrp(X, {V U W}, 2) + mttkrp(X, {W V U}, 3)) + sqrt(beta(2))*(U - Ut);
+    dV = 3*(S*(SU.*SW) + U*(WU.*VW) + V*(UU.*WW) + W*(VU.*UW)) - (mttkrp(X, {V U W}, 1) + mttkrp(X, {W V U}, 2) + mttkrp(X, {U W V}, 3)) + sqrt(beta(3))*(V - Vt);
+    dW = 3*(S*(SU.*SV) + U*(VU.*WV) + V*(WU.*UV) + W*(UU.*VV)) - (mttkrp(X, {W V U}, 1) + mttkrp(X, {U W V}, 2) + mttkrp(X, {V U W}, 3)) + sqrt(beta(4))*(W - Wt);
 
     G = [dS(:); dU(:); dV(:); dW(:)];
 
     %% Get Function Value
     f1 = norm(X)^2;
-
+    
     f2_1 = dot(reshape(mttkrp(X, {S S S}, 1), [], 1), S(:));
     f2_2 = dot(reshape(mttkrp(X, {U W V}, 1), [], 1), U(:));
     f2_3 = dot(reshape(mttkrp(X, {V U W}, 1), [], 1), V(:));
@@ -104,7 +104,7 @@ function [G, fr, ft] = CI_Gradient_FunctionValue(CI_Mat, X, varargin)
     f4_2 = norm(U-Ut)^2;
     f4_3 = norm(V-Vt)^2;
     f4_4 = norm(W-Wt)^2;
-    ft = beta*(f4_1 + f4_2 + f4_3 +f4_4);
+    ft = [f4_1 f4_2 f4_3 f4_4];
     
     % combine f_(1-3) 
     fr = 0.5*f1 - f2 + 0.5*f3;

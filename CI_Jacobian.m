@@ -1,19 +1,4 @@
 function J = CI_Jacobian(Mat, varargin)
-    %Check for correct input argument
-    if numel(Mat) ~= 4
-        error('*Input cell array must contain exactly four elements.');
-    end
-
-    S = Mat{1};
-    U = Mat{2};
-    V = Mat{3};
-    W = Mat{4};
-
-    n = size(S, 1);
-    Rs = size(S, 2);
-    Rc = size(U, 2);
-    I = eye(n);
-
     %% Set up parameters
     params = inputParser;
     params.addParameter('beta', 0, @(x) isscalar(x) & x >= 0)
@@ -21,6 +6,19 @@ function J = CI_Jacobian(Mat, varargin)
 
     %% Copy from params object
     beta = params.Results.beta;
+
+
+    % Extract matrices from cell
+    S = Mat{1};
+    U = Mat{2};
+    V = Mat{3};
+    W = Mat{4};
+    
+    % Obtain size of tensor, and cyclic invariant matrices
+    n = size(S, 1);
+    Rs = size(S, 2);
+    Rc = size(U, 2);
+    I = eye(n);
 
     %% Precomputations
     % Khatri-Rao Products

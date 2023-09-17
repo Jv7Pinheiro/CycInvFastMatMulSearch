@@ -21,7 +21,7 @@ function JJx = Apply_Approx_Hessian(CI_Mat, x, varargin)
 
     %% Set up parameters
     params = inputParser;
-    params.addParameter('beta', 0, @(x) isscalar(x) & x >= 0)
+    params.addParameter('beta', [0 0 0 0], @(x) isvector(x) || isscalar(x));
     params.addParameter('lambda', 0, @(x) isscalar(x) & x >= 0);
     params.parse(varargin{:});
 
@@ -42,7 +42,7 @@ function JJx = Apply_Approx_Hessian(CI_Mat, x, varargin)
     Rc = size(U, 2);
     
     % Get subvectors
-    A = ci_tt_cp_vec_to_fac(x,CI_Mat);
+    A = tt_cp_vec_to_ci_mat(x, CI_Mat);
     Ms = A{1};
     Mu = A{2};
     Mv = A{3};
@@ -91,32 +91,37 @@ function JJx = Apply_Approx_Hessian(CI_Mat, x, varargin)
     MwW = Mw'*W;
         
     %% Apply Approx Hessian to Vector 
+    % If beta is 0 (which is the default option for ci_cp_dgn) it will not
+    % affect the operations in any way and it would just return the normal
+    % applied approximate hessian
+    
     % Js Operations
-    OneA = 3*(Ms*(SS.*SS) + 2*(S*(MsS.*SS))) + beta*Ms; %Js'*Js*vec(Ms)
+    OneA = 3*(Ms*(SS.*SS) + 2*(S*(MsS.*SS))) + beta(1)*Ms; %Js'*Js*vec(Ms) + Bs*Ms
     OneB = 3*(Mu*(VS.*WS) + V*(MuS.*WS) + W*(MuS.*VS)); %Js'*Ju*vec(Mu)
     OneC = 3*(Mv*(US.*WS) + U*(MvS.*WS) + W*(MvS.*US)); %Js'*Jv*vec(Mv)
     OneD = 3*(Mw*(US.*VS) + U*(MwS.*VS) + V*(MwS.*US)); %Jw'*Jw*vec(Mw)
     % Ju Operations
     TwoA = 3*(Ms*(SV.*SW) + S*((MsW.*SV) + (MsV.*SW))); %Ju'*Js*vec(Ms)
-    TwoB = 3*(Mu*(VV.*WW) + V*(MuW.*WV) + W*(MuV.*VW)) + beta*Mu; %Ju'*Ju*vec(Mu)
+    TwoB = 3*(Mu*(VV.*WW) + V*(MuW.*WV) + W*(MuV.*VW)) + beta(2)*Mu; %Ju'*Ju*vec(Mu) + Bu*Mu
     TwoC = 3*(Mv*(WV.*UW) + W*(MvW.*UV) + U*(MvV.*WW)); %Ju'*Jv*vec(Mv)
     TwoD = 3*(Mw*(UV.*VW) + U*(MwW.*VV) + V*(MwV.*UW)); %Ju'*Jw*vec(Mw)
     % Jv Operations
     ThreeA = 3*(Ms*(SU.*SW) + S*((MsU.*SW) + (MsW.*SU))); %Jv'*Js*vec(Ms)
     ThreeB = 3*(Mu*(VW.*WU) + V*(MuU.*WW) + W*(MuW.*VU)); %Jv'*Ju*vec(Mu)
-    ThreeC = 3*(Mv*(WW.*UU) + W*(MvU.*UW) + U*(MvW.*WU)) + beta*Mv; %Jv'*Jv*vec(Mv)
+    ThreeC = 3*(Mv*(WW.*UU) + W*(MvU.*UW) + U*(MvW.*WU)) + beta(3)*Mv; %Jv'*Jv*vec(Mv) + Bv*Mv
     ThreeD = 3*(Mw*(UW.*VU) + U*(MwU.*VW) + V*(MwW.*UU)); %Jv'*Jw*vec(Mw)
     %Jw Operations
     FourA = 3*(Ms*(SU.*SV) + S*((MsU.*SV) + (MsV.*SU))); %Jw'*Js*vec(Ms)
     FourB = 3*(Mu*(VU.*WV) + V*(MuV.*WU) + W*(MuU.*VV)); %Jw'*Ju*vec(Mu) 
     FourC = 3*(Mv*(WU.*UV) + W*(MvV.*UU) + U*(MvU.*WV)); %Jw'*Jv*vec(Mv)
-    FourD = 3*(Mw*(UU.*VV) + U*(MwV.*VU) + V*(MwU.*UV)) + beta*Mw; %Jw'*Jw*vec(Mw)
+    FourD = 3*(Mw*(UU.*VV) + U*(MwV.*VU) + V*(MwU.*UV)) + beta(4)*Mw; %Jw'*Jw*vec(Mw) + Bw*Mw
     
     % Join them together
     One = OneA + OneB + OneC + OneD + lambda*Ms;
     Two = TwoA + TwoB + TwoC + TwoD + lambda*Mu;
     Three = ThreeA + ThreeB + ThreeC + ThreeD + lambda*Mv;
     Four = FourA + FourB + FourC + FourD + lambda*Mw;
+    
     % Return Vectorized result
     JJx = [One(:); Two(:); Three(:); Four(:)];
 end
