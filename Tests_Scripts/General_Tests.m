@@ -28,7 +28,7 @@ MMT4 = matmul_tensor(4, 4, 4); % Rank 49 | 16 Decompositions
 % (Rs = 1, Rc = 16)
 
 % Set which tensor to test
-T = MMT3; %Decomposing Tensor
+T = MMT4; %Decomposing Tensor
 
 if isequal(T, MMT2)
     Rank = 7;
@@ -51,10 +51,10 @@ elseif isequal(T, MMT3)
 elseif isequal(T, MMT4)
     Rank = 49;
     Decompositions = 16;
-    NumItr = 5000;
+    NumItr = 10000;
     Tensor = 'MMT4';
 
-    FcnValThresh = 5;
+    FcnValThresh = 100000;
 
     clear MMT2 MMT3;
 end
@@ -95,7 +95,7 @@ for Rc = 1:Decompositions
         rng(i);
         
         % Run initial test with randomized values from seed
-        [K_Prime, ~, output] = ci_cp_dgn(T, Rs, Rc, printitn=0, maxiters=150, lambda=1e-6, tol=1e-8);
+        [K_Prime, ~, output] = ci_cp_dgn(T, Rs, Rc, 'printitn', 0, 'maxiters', 150, 'lambda', 1e-6, 'tol', 1e-8);
         % Only save data if outputs are below thresholds
         if (output.FcnVal<FcnValThresh)
             [rnd, rel, abs] = getErrors(K_Prime);
@@ -130,7 +130,7 @@ for Rc = 1:Decompositions
                     end
 
                     % Rounding with Threshold
-                    RSP_K = cellfun(@(x) roundWithThreshold(x, thresholds(j)), SP_K, UniformOutput=false); 
+                    RSP_K = cellfun(@(x) roundWithThreshold(x, thresholds(j)), SP_K, 'UniformOutput', false); 
                     
 
                     [rnd, rel, abs] = getErrors(RSP_K);
@@ -146,7 +146,7 @@ for Rc = 1:Decompositions
                     Curr_SP_Data{SucItrNum, j, k} = iterationData2;
 
                     
-                    [K, P0, cp_output] = ci_cp_dgn(T, Rs, Rc, init = RSP_K, printitn=0, maxiters=150, lambda=1e-6, tol=1e-8);
+                    [K, P0, cp_output] = ci_cp_dgn(T, Rs, Rc, 'init', RSP_K, 'printitn', 0, 'maxiters', 150, 'lambda', 1e-6, 'tol', 1e-8);
                     
                     [rnd, rel, abs] = getErrors(K);
                     cp_errors.rnd = rnd;

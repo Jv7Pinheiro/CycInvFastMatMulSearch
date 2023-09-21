@@ -3,7 +3,7 @@ function [rnd, rel, abs] = getErrors(K)
     
     T = matmul_tensor(dim,dim,dim);
     U = Convert_CI_to_Mat(K);
-    R = Convert_CI_to_Mat(cellfun(@(x) round(x), K, UniformOutput=false));
+    R = Convert_CI_to_Mat(cellfun(@(x) round(x), K, 'UniformOutput', false));
     
     abs = norm(T - full(ktensor(U)));
     rel = norm(T - full(ktensor(U)))/norm(T);
