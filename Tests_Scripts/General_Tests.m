@@ -3,10 +3,21 @@
 MMT2 = matmul_tensor(2, 2, 2); % Rank 7 | 2 Decompositions
 % (Rs = 4, Rc = 1), (Rs = 1, Rc = 2).
 
-MMT3 = matmul_tensor(3, 3, 3); % Rank 23 | 7 Decompositions
+MMT3 = matmul_tensor(3, 3, 3); 
+% Rank 23 | 7 Decompositions
 % (Rs = 20, Rc = 1), (Rs = 17, Rc = 2), (Rs = 14, Rc = 3),
 % (Rs = 11, Rc = 4), (Rs = 8, Rc = 5), (Rs = 5, Rc = 6), 
 % (Rs = 2, Rc = 7)
+% Rank 22 | 7 Decompositions
+% (Rs = 19, Rc = 1), (Rs = 16, Rc = 2), (Rs = 13, Rc = 3),
+% (Rs = 10, Rc = 4), (Rs = 7, Rc = 5), (Rs = 4, Rc = 6), 
+% (Rs = 4, Rc = 7)
+% Rank 21 | 6 Decompositions
+% (Rs = 18, Rc = 1), (Rs = 15, Rc = 2), (Rs = 12, Rc = 3),
+% (Rs = 9, Rc = 4), (Rs = 6, Rc = 5), (Rs = 3, Rc = 6)
+% Rank 20 | 6 Decompositions
+% (Rs = 17, Rc = 1), (Rs = 14, Rc = 2), (Rs = 11, Rc = 3),
+% (Rs = 8, Rc = 4), (Rs = 5, Rc = 5), (Rs = 2, Rc = 6)
 
 MMT4 = matmul_tensor(4, 4, 4); % Rank 49 | 16 Decompositions
 % (Rs = 46, Rc = 1), (Rs = 43, Rc = 2), (Rs = 40, Rc = 3),
@@ -29,18 +40,18 @@ if isequal(T, MMT2)
 
     clear MMT3 MMT4;
 elseif isequal(T, MMT3)
-    Rank = 23;
-    Decompositions = 7;
-    NumItr = 2500;
+    Rank = 19;
+    Decompositions = 6;
+    NumItr = 5000;
     Tensor = 'MMT3';
 
-    FcnValThresh = 0.3;
+    FcnValThresh = 1;
 
     clear MMT2 MMT4;
 elseif isequal(T, MMT4)
     Rank = 49;
     Decompositions = 16;
-    NumItr = 2500;
+    NumItr = 5000;
     Tensor = 'MMT4';
 
     FcnValThresh = 5;
@@ -67,7 +78,7 @@ SP_Data = struct([]);
 CP_Data = struct([]);
 
 
-fprintf('\nSearching %s solutions\n', Tensor);
+fprintf('\nSearching %s solutions with Rank %d\n', Tensor, Rank);
 
 for Rc = 1:Decompositions
     Rs = Rank - 3*Rc;
@@ -180,7 +191,7 @@ clear i j k;
 clear P0 K SP_K RSP_K output cp_output;
 clear thresholds t_sz s_thresh FcnValThresh round_thresh;
 clear abs rel rnd;
-clear Tensor T;
+clear Tensor;
 clear NumItr MaxOuterItr;
 clear elapsed_time;
 clear Rank Decompositions;
@@ -189,3 +200,7 @@ clear Rs Rc;
 clear rsp_errors cp_errors errors;
 clear SucItrNum;
 clear iterationData1 iterationData2 iterationData3;
+clear P K_Prime
+clear SucItrVec MMT3
+%% Save Outputs
+save("General_Tests.mat")

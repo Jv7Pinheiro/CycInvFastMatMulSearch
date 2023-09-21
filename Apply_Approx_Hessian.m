@@ -42,7 +42,7 @@ function JJx = Apply_Approx_Hessian(CI_Mat, x, varargin)
     Rc = size(U, 2);
     
     % Get subvectors
-    A = tt_cp_vec_to_ci_mat(x, CI_Mat);
+    A = CP_Vec_to_CI(x, CI_Mat);
     Ms = A{1};
     Mu = A{2};
     Mv = A{3};

@@ -26,7 +26,7 @@ function Q = CI_sparsify(P, threshold, varargin)
     T = matmul_tensor(dim,dim,dim);
     
     % check input error
-    U = Convert_ci_mat_to_fac_mat(P);
+    U = Convert_CI_to_Mat(P);
     inerr = norm(T-full(ktensor(U)))^2;
     
     % count input nnz
@@ -87,7 +87,7 @@ function Q = CI_sparsify(P, threshold, varargin)
     end
 
     % check output error
-    Unew = Convert_ci_mat_to_fac_mat(Q);
+    Unew = Convert_CI_to_Mat(Q);
     outerr = norm(T-(ktensor(Unew)))^2;
 
     % count output nnz
