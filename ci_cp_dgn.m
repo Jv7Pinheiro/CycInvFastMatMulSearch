@@ -86,7 +86,7 @@ function [K, P0, output] = ci_cp_dgn(Z, Rs, Rc, varargin)
     % V, and W. If argument is a vector of length four, then nothing needs
     % to be done.
     if isscalar(beta)
-        beta = repmat(2, 4, 1)';
+        beta = repmat(beta, 4, 1)';
     elseif isvector(beta) || length(beta) == 2
         beta = [beta(1) beta(2) beta(2) beta(2)];
     end

@@ -1,6 +1,6 @@
 %% Prime Vector
-INITIAL_MATRIX = cell(6, 1);
-for CUR = 4:6
+INITIAL_MATRIX = cell(16, 1);
+for CUR = 11:11
     
     sz = length(Prime_Vector{CUR});
     
@@ -26,15 +26,15 @@ for CUR = 4:6
 end
 clear CUR i LOC_Vector RNG_Vector NUMITR_Vector FCNVAL_Vector ABS_Error_Vector REL_Error_Vector RND_Error_Vector;
 %% SP_Data
-RSP_MATRIX = cell(6, 1);
-
-for CUR = 4:6
+RSP_MATRIX = cell(16, 1);
+Max = 20;
+for CUR = 11:11
     sz = length(Prime_Vector{CUR});
-    ABS_Error_Matrix = zeros(sz, 5, 7);
-    REL_Error_Matrix = zeros(sz, 5, 7);
-    RND_Error_Matrix = zeros(sz, 5, 7);
+    ABS_Error_Matrix = zeros(sz, 5, Max);
+    REL_Error_Matrix = zeros(sz, 5, Max);
+    RND_Error_Matrix = zeros(sz, 5, Max);
         
-    for i = 1:7
+    for i = 1:Max
         for j = 1:sz
             for k = 1:5
                 ABS_Error_Matrix(j, k, i) = SP_Data{CUR}{j, k, i}.rsp_errors.abs;
@@ -50,17 +50,18 @@ end
 clear i j k CUR sz ABS_Error_Matrix REL_Error_Matrix RND_Error_Matrix;
 %% CP_Data
 
-CP_MATRIX = cell(6, 1);
+CP_MATRIX = cell(16, 1);
 
-for CUR = 4:6
+Max = 20;
+for CUR = 11:11
     sz = length(Prime_Vector{CUR});
 
-    NUMITR_Matrix = zeros(sz, 1, 7);
-    FCNVAL_Matrix = zeros(sz, 1, 7);
-    ABS_Error_Matrix = zeros(sz, 5, 7);
-    REL_Error_Matrix = zeros(sz, 5, 7);
-    RND_Error_Matrix = zeros(sz, 5, 7);
-    for i = 1:7
+    NUMITR_Matrix = zeros(sz, 5, Max);
+    FCNVAL_Matrix = zeros(sz, 5, Max);
+    ABS_Error_Matrix = zeros(sz, 5, Max);
+    REL_Error_Matrix = zeros(sz, 5, Max);
+    RND_Error_Matrix = zeros(sz, 5, Max);
+    for i = 1:Max
         for j = 1:sz
             for k = 1:5
                 NUMITR_Matrix(j, k, i) = CP_Data{CUR}{j, k, i}.cp_output.NumIter;
@@ -74,4 +75,4 @@ for CUR = 4:6
     CP_MATRIX{CUR} = [NUMITR_Matrix FCNVAL_Matrix ABS_Error_Matrix REL_Error_Matrix RND_Error_Matrix];
 end
 
-clear i j k NUMITR_Matrix FCNVAL_Matrix CUR sz ABS_Error_Matrix REL_Error_Matrix RND_Error_Matrix;
+clear Max i j k NUMITR_Matrix FCNVAL_Matrix CUR sz ABS_Error_Matrix REL_Error_Matrix RND_Error_Matrix;

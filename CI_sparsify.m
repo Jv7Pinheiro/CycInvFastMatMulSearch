@@ -1,4 +1,4 @@
-function Q = CI_sparsify(P, threshold, varargin)
+function [Q, innnz, outnnz] = CI_sparsify(P, threshold, varargin)
     % Introduces zeros while maintaining the same error. Default type
     % uses schur decomposition.
     

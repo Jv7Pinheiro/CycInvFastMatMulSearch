@@ -1,6 +1,7 @@
 %% Set Up
 
-MMT2 = matmul_tensor(2, 2, 2); % Rank 7 | 2 Decompositions
+MMT2 = matmul_tensor(2, 2, 2); 
+% Rank 7 | 2 Decompositions
 % (Rs = 4, Rc = 1), (Rs = 1, Rc = 2).
 
 MMT3 = matmul_tensor(3, 3, 3); 
@@ -11,15 +12,19 @@ MMT3 = matmul_tensor(3, 3, 3);
 % Rank 22 | 7 Decompositions
 % (Rs = 19, Rc = 1), (Rs = 16, Rc = 2), (Rs = 13, Rc = 3),
 % (Rs = 10, Rc = 4), (Rs = 7, Rc = 5), (Rs = 4, Rc = 6), 
-% (Rs = 4, Rc = 7)
+% (Rs = 1, Rc = 7)
 % Rank 21 | 6 Decompositions
 % (Rs = 18, Rc = 1), (Rs = 15, Rc = 2), (Rs = 12, Rc = 3),
 % (Rs = 9, Rc = 4), (Rs = 6, Rc = 5), (Rs = 3, Rc = 6)
 % Rank 20 | 6 Decompositions
 % (Rs = 17, Rc = 1), (Rs = 14, Rc = 2), (Rs = 11, Rc = 3),
 % (Rs = 8, Rc = 4), (Rs = 5, Rc = 5), (Rs = 2, Rc = 6)
+% Rank 19 | 6 Decompositions
+% (Rs = 16, Rc = 1), (Rs = 13, Rc = 2), (Rs = 10, Rc = 3),
+% (Rs = 7, Rc = 4), (Rs = 4, Rc = 5), (Rs = 1, Rc = 6)
 
-MMT4 = matmul_tensor(4, 4, 4); % Rank 49 | 16 Decompositions
+MMT4 = matmul_tensor(4, 4, 4); 
+% Rank 49 | 16 Decompositions
 % (Rs = 46, Rc = 1), (Rs = 43, Rc = 2), (Rs = 40, Rc = 3),
 % (Rs = 37, Rc = 4), (Rs = 34, Rc = 5), (Rs = 31, Rc = 6), 
 % (Rs = 28, Rc = 7), (Rs = 25, Rc = 8), (Rs = 22, Rc = 9),
@@ -28,7 +33,7 @@ MMT4 = matmul_tensor(4, 4, 4); % Rank 49 | 16 Decompositions
 % (Rs = 1, Rc = 16)
 
 % Set which tensor to test
-T = MMT4; %Decomposing Tensor
+T = MMT2; % Decomposing Tensor
 
 if isequal(T, MMT2)
     Rank = 7;
@@ -36,7 +41,7 @@ if isequal(T, MMT2)
     NumItr = 10;
     Tensor = 'MMT2';
 
-    FcnValThresh = 1e-5;
+    FcnValThresh = 100;
 
     clear MMT3 MMT4;
 elseif isequal(T, MMT3)
@@ -60,8 +65,8 @@ elseif isequal(T, MMT4)
 end
 
 % Thresholds used in CI_sparsify, roundWithThresholds, and Setting Targets
-thresholds = [0.1 0.2 0.3 0.4 0.5]';
-t_sz = size(thresholds, 1);
+thresh = [0.1 0.2 0.3 0.4 0.5]';
+t_sz = size(thresh, 1);
 
 % This vector is to measure how many succesful iterations there were per
 % decomposition type
@@ -69,9 +74,6 @@ SucItrVec = zeros(Decompositions, 1);
 
 % This is how many times we will use a out_cell as in_cell
 MaxOuterItr = 7;
-
-
-% Sparsify Threshold
 %% Testing
 Prime_Vector = struct([]);
 SP_Data = struct([]);
@@ -113,24 +115,23 @@ for Rc = 1:Decompositions
             Curr_Prime_Vector{SucItrNum} = iterationData1;
             for j = 1:t_sz
                 for k = 1:MaxOuterItr
-                    % Choose what tests to make:
                     if (k == 1)
                         % Schur Sparsify
-                        SP_K = CI_sparsify(K_Prime, thresholds(j));
+                        SP_K = CI_sparsify(K_Prime, thresh(j));
         
                         % Eigenvalue Sparsify
                         % P = CI_sparsify(K, thresholds(j), 'eig');
                     else
                         P = Curr_CP_Data{SucItrNum, j, k - 1}.out_cell;
                         % Schur Sparsify
-                        SP_K = CI_sparsify(P, thresholds(j));
+                        SP_K = CI_sparsify(P, thresh(j));
         
                         % Eigenvalue Sparsify
                         % P = CI_sparsify(K, thresholds(j), 'eig');
                     end
 
                     % Rounding with Threshold
-                    RSP_K = cellfun(@(x) roundWithThreshold(x, thresholds(j)), SP_K, 'UniformOutput', false); 
+                    RSP_K = cellfun(@(x) roundWithThreshold(x, thresh(j)), SP_K, 'UniformOutput', false); 
                     
 
                     [rnd, rel, abs] = getErrors(RSP_K);
@@ -140,7 +141,7 @@ for Rc = 1:Decompositions
                     
 
                     iterationData2.RSP_K = RSP_K;
-                    iterationData2.sp_thresh = thresholds(j);
+                    iterationData2.sp_thresh = thresh(j);
                     iterationData2.rsp_errors = rsp_errors;
                     
                     Curr_SP_Data{SucItrNum, j, k} = iterationData2;
@@ -153,11 +154,11 @@ for Rc = 1:Decompositions
                     cp_errors.rel = rel;
                     cp_errors.abs = abs;
                     
-
+                    
                     iterationData3.in_cell = P0;
                     iterationData3.out_cell = K;
                     iterationData3.cp_output = cp_output;
-                    iterationData3.sp_thresh = thresholds(j);  
+                    iterationData3.sp_thresh = thresh(j);  
                     iterationData3.cp_errors = cp_errors;
    
                     Curr_CP_Data{SucItrNum, j, k} = iterationData3;
@@ -184,12 +185,10 @@ Prime_Vector = Prime_Vector';
 
 fprintf('Done\n\n')
 
-
-
 %% Clear Variables
 clear i j k;
 clear P0 K SP_K RSP_K output cp_output;
-clear thresholds t_sz s_thresh FcnValThresh round_thresh;
+clear thresh t_sz s_thresh FcnValThresh round_thresh;
 clear abs rel rnd;
 clear Tensor;
 clear NumItr MaxOuterItr;
@@ -203,4 +202,4 @@ clear iterationData1 iterationData2 iterationData3;
 clear P K_Prime
 clear SucItrVec MMT3
 %% Save Outputs
-save("General_Tests.mat")
+save("General_Tests.mat", 'SP_Data', "CP_Data", "Prime_Vector")
