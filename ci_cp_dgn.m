@@ -116,6 +116,7 @@ end
 
 K = P0; % Set K to be initial guess
 [G, fr, ft] = CI_Gradient_FunctionValue(P0, Z, 'beta', beta, 'TG_Mat', targets); % Compute function values and gradient of init
+
 f = fr + beta(1)*ft(1) + beta(2)*ft(2) + beta(3)*ft(3) + beta(4)*ft(4); % Compute combined function value
 
 for iter = 1:maxiters    
@@ -123,10 +124,12 @@ for iter = 1:maxiters
     [dvec,cg_flag,cg_relres,cg_iter] = pcg(@(x) Apply_Approx_Hessian(K, x, 'beta', beta, 'lambda', lambda), -G, cg_tol, cg_maxiters);
 
     D = CP_Vec_to_CI(dvec, K);
-    
+    D{1} = 0;
+
     % perform backtracking line search to ensure function value decrease
     alpha = 1;
     Kprev = K;
+    Kprev{1};
     fold = f;
 
     while alpha >= minstepsize

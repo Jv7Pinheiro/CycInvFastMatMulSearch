@@ -31,9 +31,15 @@ MMT4 = matmul_tensor(4, 4, 4);
 % (Rs = 19, Rc = 10), (Rs = 16, Rc = 11), (Rs = 13, Rc = 12), 
 % (Rs = 10, Rc = 13), (Rs = 7, Rc = 14), (Rs = 4, Rc = 15), 
 % (Rs = 1, Rc = 16)
+% Rank 48 | 15 Decompositions
+% (Rs = 45, Rc = 1), (Rs = 42, Rc = 2), (Rs = 39, Rc = 3),
+% (Rs = 36, Rc = 4), (Rs = 33, Rc = 5), (Rs = 30, Rc = 6),
+% (Rs = 27, Rc = 7), (Rs = 24, Rc = 8), (Rs = 21, Rc = 9),
+% (Rs = 18, Rc = 10), (Rs = 15, Rc = 11), (Rs = 12, Rc = 12),
+% (Rs = 9, Rc = 13), (Rs = 6, Rc = 14), (Rs = 3, Rc = 15)
 
 % Set which tensor to test
-T = MMT2; % Decomposing Tensor
+T = MMT3; % Decomposing Tensor
 
 if isequal(T, MMT2)
     Rank = 7;
@@ -45,12 +51,12 @@ if isequal(T, MMT2)
 
     clear MMT3 MMT4;
 elseif isequal(T, MMT3)
-    Rank = 19;
-    Decompositions = 6;
-    NumItr = 5000;
+    Rank = 22;
+    Decompositions = 7;
+    NumItr = 2000;
     Tensor = 'MMT3';
 
-    FcnValThresh = 1;
+    FcnValThresh = 100;
 
     clear MMT2 MMT4;
 elseif isequal(T, MMT4)
@@ -59,7 +65,7 @@ elseif isequal(T, MMT4)
     NumItr = 10000;
     Tensor = 'MMT4';
 
-    FcnValThresh = 100000;
+    FcnValThresh = 3;
 
     clear MMT2 MMT3;
 end
@@ -73,7 +79,7 @@ t_sz = size(thresh, 1);
 SucItrVec = zeros(Decompositions, 1);
 
 % This is how many times we will use a out_cell as in_cell
-MaxOuterItr = 7;
+MaxOuterItr = 20;
 %% Testing
 Prime_Vector = struct([]);
 SP_Data = struct([]);
@@ -82,8 +88,9 @@ CP_Data = struct([]);
 
 fprintf('\nSearching %s solutions with Rank %d\n', Tensor, Rank);
 
-for Rc = 1:Decompositions
-    Rs = Rank - 3*Rc;
+for Rc = 7:Decompositions
+    Rc
+    Rs = Rank - 3*Rc
     
     Curr_Prime_Vector = struct([]);
     Curr_SP_Data = struct([]);
@@ -93,6 +100,10 @@ for Rc = 1:Decompositions
     
     tic;
     for i = 1:NumItr
+        if (mod(i, 100) == 0)
+            i
+        end
+
         % Set seed to be the current attempt
         rng(i);
         
@@ -118,12 +129,15 @@ for Rc = 1:Decompositions
                     if (k == 1)
                         % Schur Sparsify
                         SP_K = CI_sparsify(K_Prime, thresh(j));
-        
+
                         % Eigenvalue Sparsify
                         % P = CI_sparsify(K, thresholds(j), 'eig');
                     else
                         P = Curr_CP_Data{SucItrNum, j, k - 1}.out_cell;
                         % Schur Sparsify
+                        if ~isnan(P{1}(1))
+                            break
+                        end
                         SP_K = CI_sparsify(P, thresh(j));
         
                         % Eigenvalue Sparsify
