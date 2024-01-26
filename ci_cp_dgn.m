@@ -87,8 +87,15 @@ function [K, P0, output] = ci_cp_dgn(Z, Rs, Rc, varargin)
     % to be done.
     if isscalar(beta)
         beta = repmat(beta, 4, 1)';
-    elseif isvector(beta) || length(beta) == 2
-        beta = [beta(1) beta(2) beta(2) beta(2)];
+    elseif isvector(beta) 
+        if length(beta) == 2
+            beta = [beta(1) beta(2) beta(2) beta(2)];
+        elseif length(beta) == 3 || length(beta) > 4
+            error(['Beta must either be \n' ...
+                'a single number that applies to all cyclic invariant matrices or\n' ...
+                'a vector of length two where the first entry applies to S and the second entry applies to U, V, and W or \n' ...
+                'a vector of length four where each entry corresponds to a cyclic invarient matrix'])
+        end
     end
 
 
@@ -98,7 +105,7 @@ function [K, P0, output] = ci_cp_dgn(Z, Rs, Rc, varargin)
 % 'Iter' - Current cp_dgn iteration.
 % 'f' - The combined function value of fr and ft. When beta = 0, f=fr.
 % 'fr' - The original function.
-% 'ft' - The tergeted function value which includes beta and the target
+% 'ft' - The targeted function value which includes beta and the target
 % matrices.
 % 'delta' - The change in the previous function value to new function value
 % if this decreases then ci_cp_dgn breaks as progress is no longer being
@@ -124,14 +131,14 @@ for iter = 1:maxiters
     [dvec,cg_flag,cg_relres,cg_iter] = pcg(@(x) Apply_Approx_Hessian(K, x, 'beta', beta, 'lambda', lambda), -G, cg_tol, cg_maxiters);
 
     D = CP_Vec_to_CI(dvec, K);
-    D{1} = 0;
-
+    if (Rs == 0)
+        D{1} = 0;
+    end
     % perform backtracking line search to ensure function value decrease
     alpha = 1;
     Kprev = K;
-    Kprev{1};
     fold = f;
-
+    
     while alpha >= minstepsize
 
         % take Gauss-Newton step

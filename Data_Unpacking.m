@@ -1,4 +1,5 @@
-Rc = 7;
+Rc = 2;
+Max = 6;
 
 %% Prime Vector
 INITIAL_MATRIX = cell(Rc, 1);
@@ -29,7 +30,7 @@ end
 clear CUR i LOC_Vector RNG_Vector NUMITR_Vector FCNVAL_Vector ABS_Error_Vector REL_Error_Vector RND_Error_Vector;
 %% SP_Data
 RSP_MATRIX = cell(Rc, 1);
-Max = 20;
+
 for CUR = Rc:Rc
     sz = length(Prime_Vector{CUR});
     ABS_Error_Matrix = zeros(sz, 5, Max);
@@ -54,7 +55,6 @@ clear i j k CUR sz ABS_Error_Matrix REL_Error_Matrix RND_Error_Matrix;
 
 CP_MATRIX = cell(Rc, 1);
 
-Max = 20;
 for CUR = Rc:Rc
     sz = length(Prime_Vector{CUR});
 
@@ -80,7 +80,3 @@ end
 clear Max i j k NUMITR_Matrix FCNVAL_Matrix CUR sz ABS_Error_Matrix REL_Error_Matrix RND_Error_Matrix;
 
 
-%% 
-
-Good = CP_Data{7};
-Mat = zeros(2000, 5);

@@ -134,26 +134,46 @@ function [G, fr, ft] = CI_Gradient_FunctionValue(CI_Mat, X, varargin)
     f4_2 = 0;
     f4_3 = 0;
     f4_4 = 0;
-
-    if Rs ~= 0
+    
+    if (Rs ~= 0 && Rc ~= 00)   
         f2_1 = dot(reshape(mttkrp(X, {S S S}, 1), [], 1), S(:));
-        f3_1 = sum(reshape(SS.*SS.*SS, [], 1));
-        f4_1 = norm(S-St)^2;
-    end
-    if Rc ~= 0
         f2_2 = dot(reshape(mttkrp(X, {U W V}, 1), [], 1), U(:));
         f2_3 = dot(reshape(mttkrp(X, {V U W}, 1), [], 1), V(:));
         f2_4 = dot(reshape(mttkrp(X, {W V U}, 1), [], 1), W(:));
-
+        f2 = f2_1 + f2_2 + f2_3 + f2_4;
+        
+        f3_1 = sum(reshape(SS.*SS.*SS, [], 1));
+        f3_2 = 6*sum(reshape(SV.*SW.*SU, [], 1));
         f3_3 = 3*sum(reshape(VV.*WW.*UU, [], 1));
         f3_4 = 6*sum(reshape(WV.*UW.*VU, [], 1));
-
+        f3 = f3_1 + f3_2 + f3_3 + f3_4;
+        
+        % f's for target matrices function value
+        f4_1 = norm(S-St)^2;
         f4_2 = norm(U-Ut)^2;
         f4_3 = norm(V-Vt)^2;
         f4_4 = norm(W-Wt)^2;
-    end
-    if ~(Rs == 0 || Rc == 0)
-        f3_2 = 6*sum(reshape(SV.*SW.*SU, [], 1));
+    else
+        if Rs ~= 0
+            f2_1 = dot(reshape(mttkrp(X, {S S S}, 1), [], 1), S(:));
+            f3_1 = sum(reshape(SS.*SS.*SS, [], 1));
+            f4_1 = norm(S-St)^2;
+        end
+        if Rc ~= 0
+            f2_2 = dot(reshape(mttkrp(X, {U W V}, 1), [], 1), U(:));
+            f2_3 = dot(reshape(mttkrp(X, {V U W}, 1), [], 1), V(:));
+            f2_4 = dot(reshape(mttkrp(X, {W V U}, 1), [], 1), W(:));
+    
+            f3_3 = 3*sum(reshape(VV.*WW.*UU, [], 1));
+            f3_4 = 6*sum(reshape(WV.*UW.*VU, [], 1));
+    
+            f4_2 = norm(U-Ut)^2;
+            f4_3 = norm(V-Vt)^2;
+            f4_4 = norm(W-Wt)^2;
+        end
+        if ~(Rs == 0 || Rc == 0)
+            f3_2 = 6*sum(reshape(SV.*SW.*SU, [], 1));
+        end
     end
 
     f2 = f2_1 + f2_2 + f2_3 + f2_4;

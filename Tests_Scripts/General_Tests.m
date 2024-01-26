@@ -38,18 +38,58 @@ MMT4 = matmul_tensor(4, 4, 4);
 % (Rs = 18, Rc = 10), (Rs = 15, Rc = 11), (Rs = 12, Rc = 12),
 % (Rs = 9, Rc = 13), (Rs = 6, Rc = 14), (Rs = 3, Rc = 15)
 
+MMT5 = matmul_tensor(5, 5, 5);
+% Rank 97 | 32 Decompositions
+% (Rs = 96, Rc = 1), (Rs = 93, Rc = 2), (Rs = 90, Rc = 3), 
+% (Rs = 87, Rc = 4), (Rs = 84, Rc = 5), (Rs = 81, Rc = 6), 
+% (Rs = 78, Rc = 7), (Rs = 75, Rc = 8), (Rs = 72, Rc = 9), 
+% (Rs = 69, Rc = 10), (Rs = 66, Rc = 11), (Rs = 63, Rc = 12), 
+% (Rs = 60, Rc = 13), (Rs = 57, Rc = 14), (Rs = 54, Rc = 15), 
+% (Rs = 51, Rc = 16), (Rs = 48, Rc = 17), (Rs = 45, Rc = 18), 
+% (Rs = 42, Rc = 19), (Rs = 39, Rc = 20), (Rs = 36, Rc = 21), 
+% (Rs = 33, Rc = 22), (Rs = 30, Rc = 23), (Rs = 27, Rc = 24), 
+% (Rs = 24, Rc = 25), (Rs = 21, Rc = 26), (Rs = 18, Rc = 27), 
+% (Rs = 15, Rc = 28), (Rs = 12, Rc = 29), (Rs = 9, Rc = 30), 
+% (Rs = 6, Rc = 31), (Rs = 3, Rc = 32), 
+% Rank 98 | 32 Decompositions
+% (Rs = 95, Rc = 1), (Rs = 92, Rc = 2), (Rs = 89, Rc = 3)
+% (Rs = 86, Rc = 4), (Rs = 83, Rc = 5), (Rs = 80, Rc = 6)
+% (Rs = 77, Rc = 7), (Rs = 74, Rc = 8), (Rs = 71, Rc = 9)
+% (Rs = 68, Rc = 10), (Rs = 65, Rc = 11), (Rs = 62, Rc = 12)
+% (Rs = 59, Rc = 13), (Rs = 56, Rc = 14), (Rs = 53, Rc = 15)
+% (Rs = 50, Rc = 16), (Rs = 47, Rc = 17), (Rs = 44, Rc = 18)
+% (Rs = 41, Rc = 19), (Rs = 38, Rc = 20), (Rs = 35, Rc = 21)
+% (Rs = 32, Rc = 22), (Rs = 29, Rc = 23), (Rs = 26, Rc = 24)
+% (Rs = 23, Rc = 25), (Rs = 20, Rc = 26), (Rs = 17, Rc = 27)
+% (Rs = 14, Rc = 28), (Rs = 11, Rc = 29), (Rs = 8, Rc = 30)
+%(Rs = 5, Rc = 31), (Rs = 2, Rc = 32)
+% Rank 97 | 32 Decompositions
+% (Rs = 94, Rc = 1), (Rs = 91, Rc = 2), (Rs = 88, Rc = 3), 
+% (Rs = 85, Rc = 4), (Rs = 82, Rc = 5), (Rs = 79, Rc = 6), 
+% (Rs = 76, Rc = 7), (Rs = 73, Rc = 8), (Rs = 70, Rc = 9), 
+% (Rs = 67, Rc = 10), (Rs = 64, Rc = 11), (Rs = 61, Rc = 12), 
+% (Rs = 58, Rc = 13), (Rs = 55, Rc = 14), (Rs = 52, Rc = 15), 
+% (Rs = 49, Rc = 16), (Rs = 46, Rc = 17), (Rs = 43, Rc = 18), 
+% (Rs = 40, Rc = 19), (Rs = 37, Rc = 20), (Rs = 34, Rc = 21), 
+% (Rs = 31, Rc = 22), (Rs = 28, Rc = 23), (Rs = 25, Rc = 24), 
+% (Rs = 22, Rc = 25), (Rs = 19, Rc = 26), (Rs = 16, Rc = 27), 
+% (Rs = 13, Rc = 28), (Rs = 10, Rc = 29), (Rs = 7, Rc = 30), 
+% (Rs = 4, Rc = 31), (Rs = 1, Rc = 32)
+
+
+
 % Set which tensor to test
-T = MMT3; % Decomposing Tensor
+T = MMT2; % Decomposing Tensor
 
 if isequal(T, MMT2)
     Rank = 7;
     Decompositions = 2;
-    NumItr = 10;
+    NumItr = 200;
     Tensor = 'MMT2';
 
-    FcnValThresh = 100;
+    FcnValThresh = 1;
 
-    clear MMT3 MMT4;
+    clear MMT3 MMT4 MMT5;
 elseif isequal(T, MMT3)
     Rank = 22;
     Decompositions = 7;
@@ -58,7 +98,7 @@ elseif isequal(T, MMT3)
 
     FcnValThresh = 100;
 
-    clear MMT2 MMT4;
+    clear MMT2 MMT4 MMT5;
 elseif isequal(T, MMT4)
     Rank = 49;
     Decompositions = 16;
@@ -67,7 +107,7 @@ elseif isequal(T, MMT4)
 
     FcnValThresh = 3;
 
-    clear MMT2 MMT3;
+    clear MMT2 MMT3 MMT5;
 end
 
 % Thresholds used in CI_sparsify, roundWithThresholds, and Setting Targets
@@ -79,7 +119,7 @@ t_sz = size(thresh, 1);
 SucItrVec = zeros(Decompositions, 1);
 
 % This is how many times we will use a out_cell as in_cell
-MaxOuterItr = 20;
+MaxOuterItr = 6;
 %% Testing
 Prime_Vector = struct([]);
 SP_Data = struct([]);
@@ -88,7 +128,7 @@ CP_Data = struct([]);
 
 fprintf('\nSearching %s solutions with Rank %d\n', Tensor, Rank);
 
-for Rc = 7:Decompositions
+for Rc = 2:Decompositions
     Rc
     Rs = Rank - 3*Rc
     
@@ -99,10 +139,9 @@ for Rc = 7:Decompositions
     SucItrNum = 1;
     
     tic;
+    fprintf("Here");
     for i = 1:NumItr
-        if (mod(i, 100) == 0)
-            i
-        end
+        i
 
         % Set seed to be the current attempt
         rng(i);
@@ -135,9 +174,7 @@ for Rc = 7:Decompositions
                     else
                         P = Curr_CP_Data{SucItrNum, j, k - 1}.out_cell;
                         % Schur Sparsify
-                        if ~isnan(P{1}(1))
-                            break
-                        end
+
                         SP_K = CI_sparsify(P, thresh(j));
         
                         % Eigenvalue Sparsify

@@ -17,6 +17,12 @@ function roundMat = roundWithThreshold(inputMatrix, threshold)
             else
                 roundMat(i, j) = inputMatrix(i, j);
             end
+
+            % if roundMat(i, j) > 1
+            %     roundMat(i, j)    = 1;
+            % elseif roundMat(i, j) < -1
+            %     roundMat(i, j) = -1;
+            % end
         end
     end
 end

@@ -30,48 +30,56 @@ function [Q, innnz, outnnz] = CI_sparsify(P, threshold, varargin)
     inerr = norm(T-full(ktensor(U)))^2;
     
     % count input nnz
-    innnz = sum(cellfun(@(x) nnz(abs(x) > threshold), P));
-
+    if Rs == 0
+        innnz = sum(cellfun(@(x) nnz(abs(x) > threshold), {P(1), P(2), P(3)}));
+    else
+        innnz = sum(cellfun(@(x) nnz(abs(x) > threshold), P));
+    end
+    
     if (print == 1)
         fprintf('\nInitial error is %7.1e, with %d zeros\n', inerr, innnz);
     end
 
     % try symmetric components
-    Qs = cell(Rs,1);
-    nnzs = zeros(Rs,1);
-    if isequal(type, 'schur')
-        for i = 1:Rs
-            [Qs{i},~] = schur(reshape(P{1}(:,i),dim,dim));
-            Q = cellfun(@(x) kron(Qs{i}',Qs{i}') * x, P, 'UniformOutput', false);
-            nnzs(i) = sum(cellfun(@(x) nnz(abs(x) > threshold), Q)); 
-        end
-    elseif (isequal(type, 'eig'))
-        for i = 1:Rs
-            PP = (reshape(P{1}(:, i),dim,dim)' + reshape(P{1}(:, i),dim,dim))/2;
-            [Qs{i},~] = eig(reshape(PP,dim,dim));
-            Q = cellfun(@(x) kron(Qs{i}',Qs{i}') * x, P, 'UniformOutput', false);
-            nnzs(i) = sum(cellfun(@(x) nnz(abs(x) > threshold), Q)); 
+    if Rs ~= 0
+        Qs = cell(Rs,1);
+        nnzs = zeros(Rs,1);
+        if isequal(type, 'schur')
+            for i = 1:Rs
+                [Qs{i},~] = schur(reshape(P{1}(:,i),dim,dim));
+                Q = cellfun(@(x) kron(Qs{i}',Qs{i}') * x, P, 'UniformOutput', false);
+                nnzs(i) = sum(cellfun(@(x) nnz(abs(x) > threshold), Q)); 
+            end
+        elseif (isequal(type, 'eig'))
+            for i = 1:Rs
+                PP = (reshape(P{1}(:, i),dim,dim)' + reshape(P{1}(:, i),dim,dim))/2;
+                [Qs{i},~] = eig(reshape(PP,dim,dim));
+                Q = cellfun(@(x) kron(Qs{i}',Qs{i}') * x, P, 'UniformOutput', false);
+                nnzs(i) = sum(cellfun(@(x) nnz(abs(x) > threshold), Q)); 
+            end
         end
     end
 
     % try cyclic components
-    Qc = cell(Rc,3);
-    nnzc = zeros(Rc,3);
-    if isequal(type,'schur')
-        for i = 1:Rc
-            for j = 1:3
-                [Qc{i,j},~] = schur(reshape(P{j+1}(:,i),dim,dim));
-                Q = cellfun(@(x) kron(Qc{i,j}',Qc{i,j}') * x, P, 'UniformOutput', false);
-                nnzc(i,j) = sum(cellfun(@(x) nnz(abs(x) > threshold), Q));
+    if Rc ~= 0
+        Qc = cell(Rc,3);
+        nnzc = zeros(Rc,3);
+        if isequal(type,'schur')
+            for i = 1:Rc
+                for j = 1:3
+                    [Qc{i,j},~] = schur(reshape(P{j+1}(:,i),dim,dim));
+                    Q = cellfun(@(x) kron(Qc{i,j}',Qc{i,j}') * x, P, 'UniformOutput', false);
+                    nnzc(i,j) = sum(cellfun(@(x) nnz(abs(x) > threshold), Q));
+                end
             end
-        end
-    elseif isequal(type, 'eig')
-        for i = 1:Rc
-            for j = 1:3
-                PP = (reshape(P{j+1}(:, i),dim,dim)' + reshape(P{j+1}(:, i),dim,dim))/2;
-                [Qc{i,j},~] = eig(reshape(PP,dim,dim));
-                Q = cellfun(@(x) kron(Qc{i,j}',Qc{i,j}') * x, P, 'UniformOutput', false);
-                nnzc(i,j) = sum(cellfun(@(x) nnz(abs(x) > threshold), Q));
+        elseif isequal(type, 'eig')
+            for i = 1:Rc
+                for j = 1:3
+                    PP = (reshape(P{j+1}(:, i),dim,dim)' + reshape(P{j+1}(:, i),dim,dim))/2;
+                    [Qc{i,j},~] = eig(reshape(PP,dim,dim));
+                    Q = cellfun(@(x) kron(Qc{i,j}',Qc{i,j}') * x, P, 'UniformOutput', false);
+                    nnzc(i,j) = sum(cellfun(@(x) nnz(abs(x) > threshold), Q));
+                end
             end
         end
     end
@@ -91,7 +99,11 @@ function [Q, innnz, outnnz] = CI_sparsify(P, threshold, varargin)
     outerr = norm(T-(ktensor(Unew)))^2;
 
     % count output nnz
-    outnnz = sum(cellfun(@(x) nnz(abs(x) > threshold), Q));
+    if Rs ~= 0
+        outnnz = sum(cellfun(@(x) nnz(abs(x) > threshold), Q));
+    else
+        outnnz = sum(cellfun(@(x) nnz(abs(x) > threshold), {Q{2}, Q{3}, Q{4}}));
+    end
 
     if (print == 1)
         fprintf('Output error is %7.1e, with %d zeros\n\n', outerr, outnnz);
